@@ -28,3 +28,7 @@ DB.create_table :post_revisions do
 
   index [:post_id]
 end
+
+RSpec.configure do |config|
+  config.expect_with(:rspec) { |c| c.syntax = :should }
+end

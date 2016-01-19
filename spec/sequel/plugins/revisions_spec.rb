@@ -1,8 +1,8 @@
-require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
-require 'pry'
+require 'spec_helper'
+
 class Post < Sequel::Model; end
 
-describe "SequelRevisions" do
+describe Sequel::Plugins::Revisions do
   before(:each) do
     Post.plugin :revisions, meta: -> (model) {
       {
