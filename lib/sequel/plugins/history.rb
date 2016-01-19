@@ -1,4 +1,5 @@
 require 'sequel'
+require 'json'
 
 module Sequel::Plugins
   module History
@@ -6,7 +7,8 @@ module Sequel::Plugins
       options = {
         model_name: "#{model.name}HistoryEvent",
         table_name: "#{model.table_name.to_s.singularize}_history_events",
-        exclude: [:created_at, :updated_at]
+        exclude: [:created_at, :updated_at],
+        meta: nil
       }.merge(options)
 
       base_name = options[:model_name]
@@ -19,32 +21,49 @@ module Sequel::Plugins
         mobject = Object
       end
 
+      # Dynamically create Model class
       klass = Class.new(Sequel::Model(options[:table_name].to_sym))
-      klass.class_eval %{
+      klass.class_eval do
+        @@lmeta = options[:meta]
         plugin :timestamps
-        many_to_one :#{model.table_name}, class: "#{model.name}"
-      }
+        plugin :serialization
+
+        serialize_attributes :json, :meta
+        serialize_attributes :json, :changes
+        many_to_one model.table_name.to_sym, class: model.name
+
+        def before_create
+          # ToDo: This should not call to_json. Maybe a bug?
+          self[:meta] = @@lmeta.call(self).to_json unless @@lmeta.nil?
+          super
+        end
+      end
+
       # Actually define the class in the module
       mobject.const_set base_name, klass
 
-      model.class_eval %{
-        one_to_many :#{options[:table_name]}, class: "#{options[:model_name]}"
-      }
+      model.class_eval do
+        plugin :dirty
+        one_to_many :history, class: options[:model_name]
+
+        def revert
+          return if history.empty?
+
+          last = history.last
+          changes = last.changes
+          changes.keys.each do |key|
+            send("#{key}=", changes[key][0])
+          end
+        end
+
+        def revert!
+          revert
+          save
+        end
+      end
     end
 
     def self.configure(model, options = {})
-      options = {
-        model_name: "#{model.name}HistoryEvents",
-        table_name: "#{model.table_name}_history_events",
-        exclude: [:created_at, :updated_at]
-      }.merge(options)
-
-      model.instance_eval do
-        @history_opts = options
-      end
-
-      # ToDo: Define Model
-
     end
 
     module ClassMethods
@@ -52,7 +71,7 @@ module Sequel::Plugins
 
     module InstanceMethods
 
-      def after_update
+      def before_update
         track_changes
         super
       end
@@ -62,11 +81,13 @@ module Sequel::Plugins
       def track_changes
         return if changed_columns.empty?
 
-        changes = changed_columns.map do |key|
-          { key => column_change(key) }
+        # Map the changed fields into an object
+        changes = changed_columns.inject({}) do |obj, key|
+          obj[key] = column_change(key)
+          obj
         end
 
-
+        add_history(changes: changes)
       end
     end
   end

@@ -6,9 +6,13 @@ Gem::Specification.new do |s|
   s.description = "Use this plugin to mark a model instance as deleted without loosing its actual data."
   s.authors     = ["Fabian Becker"]
   s.email       = 'halfdan@xnorfz.de'
-  s.files       = ["lib/sequel/plugins/history.rb"]
+  s.files = Dir['Rakefile', '{lib,spec}/**/*', 'README*', 'LICENSE*', 'CHANGELOG*'] & `git ls-files -z`.split("\0")
   s.homepage    = 'https://github.com/halfdan/sequel-history'
   s.license     = "MIT"
 
   s.add_runtime_dependency "sequel"
+  s.add_runtime_dependency "sequel-json"
+  s.add_development_dependency 'sqlite3'
+  s.add_development_dependency 'rspec'
+  s.add_development_dependency 'pry'
 end
