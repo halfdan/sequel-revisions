@@ -2,7 +2,7 @@ $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'sequel'
 require 'rspec'
 
-require_relative '../lib/sequel/plugins/history'
+require_relative '../lib/sequel/plugins/revisions'
 
 Sequel.extension :inflector
 
@@ -17,7 +17,7 @@ DB.create_table :posts do
   DateTime :updated_at
 end
 
-DB.create_table :post_history_events do
+DB.create_table :post_revisions do
   primary_key :id, :integer, auto_increment: true
   integer :post_id, null: false
   text :meta, default: "{}"
@@ -27,10 +27,4 @@ DB.create_table :post_history_events do
   DateTime :updated_at
 
   index [:post_id]
-end
-
-class Post < Sequel::Model; end
-
-RSpec.configure do |config|
-  #config.after(:each)  { Post.delete }
 end

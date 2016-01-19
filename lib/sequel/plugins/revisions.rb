@@ -2,11 +2,11 @@ require 'sequel'
 require 'json'
 
 module Sequel::Plugins
-  module History
+  module Revisions
     def self.apply(model, options = {})
       options = {
-        model_name: "#{model.name}HistoryEvent",
-        table_name: "#{model.table_name.to_s.singularize}_history_events",
+        model_name: "#{model.name}Revisions",
+        table_name: "#{model.table_name.to_s.singularize}_revisions",
         exclude: [:created_at, :updated_at],
         meta: nil
       }.merge(options)
@@ -44,12 +44,12 @@ module Sequel::Plugins
 
       model.class_eval do
         plugin :dirty
-        one_to_many :history, class: options[:model_name]
+        one_to_many :revisions, class: options[:model_name]
 
         def revert
-          return if history.empty?
+          return if revisions.empty?
 
-          last = history.last
+          last = revisions.last
           changes = last.changes
           changes.keys.each do |key|
             send("#{key}=", changes[key][0])
@@ -87,7 +87,7 @@ module Sequel::Plugins
           obj
         end
 
-        add_history(changes: changes)
+        add_revision(changes: changes)
       end
     end
   end

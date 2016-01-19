@@ -2,9 +2,9 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 require 'pry'
 class Post < Sequel::Model; end
 
-describe "SequelHistory" do
+describe "SequelRevisions" do
   before(:each) do
-    Post.plugin :history, meta: -> (model) {
+    Post.plugin :revisions, meta: -> (model) {
       {
         user_id: 12,
         user_name: "Marvin",
@@ -14,20 +14,20 @@ describe "SequelHistory" do
   end
 
   it "should be loaded using Model.plugin" do
-    Post.plugins.should include(Sequel::Plugins::History)
+    Post.plugins.should include(Sequel::Plugins::Revisions)
   end
 
-  it "should define a PostHistoryEvent model" do
-    Object.const_get("PostHistoryEvent").should_not be_nil
+  it "should define a PostRevisions model" do
+    Object.const_get("PostRevisions").should_not be_nil
   end
 
-  describe "History Tracking" do
+  describe "Revision Tracking" do
     before(:each) do
       @post = Post.new(title: "Test Post", content: "Awesome Content")
     end
 
     it "should start with empty history" do
-      @post.history.should be_empty
+      @post.revisions.should be_empty
     end
 
     it "should track changes after update" do
@@ -37,7 +37,7 @@ describe "SequelHistory" do
       @post.title = "New Title"
       @post.save
 
-      @post.history.length.should eq(1)
+      @post.revisions.length.should eq(1)
     end
 
     it "should track the correct fields" do
@@ -49,8 +49,8 @@ describe "SequelHistory" do
       @post.content = "Different content"
       @post.save
 
-      history = @post.history.last
-      history.changes.size.should eq(2)
+      revision = @post.revisions.last
+      revision.changes.size.should eq(2)
     end
   end
 
@@ -59,7 +59,7 @@ describe "SequelHistory" do
       @post = Post.create(title: "Test Post", content: "Awesome Content")
     end
 
-    it "does nothing when there's no history" do
+    it "does nothing when there's are no revisions" do
       @post.revert
       @post.changed_columns.should be_empty
     end
@@ -75,15 +75,15 @@ describe "SequelHistory" do
       @post.changed_columns.length.should eq(2)
     end
 
-    it "tracks history when reverting" do
+    it "tracks changes when reverting" do
       @post.title = "Changed Title"
       @post.content = "Changed Content"
       @post.save
 
-      @post.history.length.should eq(1)
+      @post.revisions.length.should eq(1)
 
       @post.revert!
-      @post.history.length.should eq(2)
+      @post.revisions.length.should eq(2)
     end
   end
 
@@ -93,10 +93,10 @@ describe "SequelHistory" do
       @post.title = "Other Title"
       @post.save
 
-      meta = @post.history.last.meta
+      meta = @post.revisions.last.meta
       meta.should_not be_empty
-      meta[:user_id].should eq(12)
-      meta[:revisions].should eq(1)
+      meta['user_id'].should eq(12)
+      meta['revisions'].should eq(1)
     end
   end
 end
