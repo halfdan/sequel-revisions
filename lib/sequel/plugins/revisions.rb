@@ -34,7 +34,7 @@ module Sequel::Plugins
 
         def before_create
           # ToDo: This should not call to_json. Maybe a bug?
-          self[:meta] = @@lmeta.call(self).to_json unless @@lmeta.nil?
+          self[:meta] = @@lmeta.call().to_json unless @@lmeta.nil?
           super
         end
       end
