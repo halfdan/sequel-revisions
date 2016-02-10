@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/halfdan/sequel-revisions.svg?branch=master)](https://travis-ci.org/halfdan/sequel-revisions)
+
 # Sequel Revisions
 
 This plugin provides an easy way to track changes to your model. It currently only supports PostgreSQL as it uses a JSON field to store changed fields.
