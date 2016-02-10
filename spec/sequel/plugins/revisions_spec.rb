@@ -4,11 +4,10 @@ class Post < Sequel::Model; end
 
 describe Sequel::Plugins::Revisions do
   before(:each) do
-    Post.plugin :revisions, meta: -> (model) {
+    Post.plugin :revisions, meta: -> () {
       {
         user_id: 12,
-        user_name: "Marvin",
-        revisions: model.changes.size
+        user_name: "Marvin"
       }
     }
   end
@@ -96,7 +95,7 @@ describe Sequel::Plugins::Revisions do
       meta = @post.revisions.last.meta
       meta.should_not be_empty
       meta['user_id'].should eq(12)
-      meta['revisions'].should eq(1)
+      #meta['revisions'].should eq(1)
     end
   end
 end
