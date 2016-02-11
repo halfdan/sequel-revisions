@@ -1,5 +1,6 @@
 require 'spec_helper'
 
+class Article < Sequel::Model; end
 class Post < Sequel::Model; end
 
 describe Sequel::Plugins::Revisions do
@@ -20,7 +21,7 @@ describe Sequel::Plugins::Revisions do
     end
 
     it "should define a PostRevisions model" do
-      Object.const_get("PostRevisions").should_not be_nil
+      Object.const_get("PostRevision").should_not be_nil
     end
 
     describe "Revision Tracking" do
@@ -105,7 +106,7 @@ describe Sequel::Plugins::Revisions do
 
   describe "Polymorphic Model" do
     before(:each) do
-      Post.plugin :revisions,
+      Article.plugin :revisions,
         meta: -> () {
           {
             user_id: 12,
@@ -116,11 +117,44 @@ describe Sequel::Plugins::Revisions do
     end
 
     it "should be loaded using Model.plugin" do
-      Post.plugins.should include(Sequel::Plugins::Revisions)
+      Article.plugins.should include(Sequel::Plugins::Revisions)
     end
 
     it "should define a PostRevisions model" do
-      Object.const_get("Revisions").should_not be_nil
+      Object.const_get("Revision").should_not be_nil
+    end
+
+    describe "Revision Tracking" do
+      before(:each) do
+        @article = Article.new(title: "Test Article", content: "Awesome Content")
+      end
+
+      it "should start with empty history" do
+        @article.revisions.should be_empty
+      end
+
+      it "should track changes after update" do
+        # First save
+        @article.save
+        # Changing post
+        @article.title = "New Title"
+        @article.save
+
+        @article.revisions.length.should eq(1)
+      end
+
+      it "should track the correct fields" do
+        # First save
+        @article.save
+
+        # Changing post
+        @article.title = "New Title"
+        @article.content = "Different content"
+        @article.save
+
+        revision = @article.revisions.last
+        revision.changes.size.should eq(2)
+      end
     end
   end
 end

@@ -29,6 +29,15 @@ DB.create_table :post_revisions do
   index [:post_id]
 end
 
+DB.create_table :articles do
+  primary_key :id, :integer, auto_increment: true
+  varchar :title, null: false
+  text :content, null: false
+
+  DateTime :created_at
+  DateTime :updated_at
+end
+
 DB.create_table :revisions do
   primary_key :id, :integer, auto_increment: true
   integer :trackable_id, null: false

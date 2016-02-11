@@ -57,7 +57,7 @@ module Sequel::Plugins
   private
 
     def self.set_options(model, options)
-      model_name = options[:polymorphic] ? "Revisions" : "#{model.name}Revisions"
+      model_name = options[:polymorphic] ? "Revision" : "#{model.name}Revision"
       table_name = options[:polymorphic] ? "revisions" : "#{model.table_name.to_s.singularize}_revisions"
 
       options = {
@@ -78,12 +78,21 @@ module Sequel::Plugins
 
         serialize_attributes :json, :meta
         serialize_attributes :json, :changes
-        many_to_one model.table_name.to_sym, class: model.name
 
         def before_create
           # ToDo: This should not call to_json. Maybe a bug?
           self[:meta] = @@lmeta.call().to_json unless @@lmeta.nil?
           super
+        end
+      end
+
+      if options[:polymorphic]
+        klass.class_eval do
+          many_to_one :trackable, polymorphic: true
+        end
+      else
+        klass.class_eval do
+          many_to_one model.table_name.to_sym, class: model.name
         end
       end
       klass
@@ -92,7 +101,6 @@ module Sequel::Plugins
     def self.setup_model(model, options)
       model.class_eval do
         plugin :dirty
-        one_to_many :revisions, class: options[:model_name]
 
         def revert
           return if revisions.empty?
@@ -107,6 +115,16 @@ module Sequel::Plugins
         def revert!
           revert
           save
+        end
+      end
+
+      if options[:polymorphic]
+        model.class_eval do
+          one_to_many :revisions, as: :trackable
+        end
+      else
+        model.class_eval do
+          one_to_many :revisions, class: options[:model_name]
         end
       end
     end
