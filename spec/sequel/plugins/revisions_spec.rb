@@ -106,6 +106,7 @@ describe Sequel::Plugins::Revisions do
 
   describe "Polymorphic Model" do
     before(:each) do
+      Article.plugin :polymorphic
       Article.plugin :revisions,
         meta: -> () {
           {
@@ -136,6 +137,7 @@ describe Sequel::Plugins::Revisions do
       it "should track changes after update" do
         # First save
         @article.save
+
         # Changing post
         @article.title = "New Title"
         @article.save

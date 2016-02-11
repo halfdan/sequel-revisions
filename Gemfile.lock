@@ -4,6 +4,7 @@ PATH
     sequel-revisions (0.1.1)
       sequel (~> 4)
       sequel-json (~> 0)
+      sequel_polymorphic
 
 GEM
   remote: https://rubygems.org/
@@ -27,6 +28,8 @@ GEM
     sequel-json (0.0.1)
       sequel
       yajl-ruby
+    sequel_polymorphic (0.2.2)
+      sequel (~> 4.0)
     sqlite3 (1.3.11)
     yajl-ruby (1.2.1)
 

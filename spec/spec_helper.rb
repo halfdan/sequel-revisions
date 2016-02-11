@@ -43,8 +43,8 @@ DB.create_table :revisions do
   integer :trackable_id, null: false
   string :trackable_type, null: false
 
-  integer :embedded_id, null: false
-  string :embedded_type, null: false
+  integer :embedded_id, null: true
+  string :embedded_type, null: true
 
   text :meta, default: "{}"
   text :changes, default: "{}"

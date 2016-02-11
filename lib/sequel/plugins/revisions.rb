@@ -20,12 +20,14 @@ module Sequel::Plugins
         mobject = Object
       end
 
+      # Don't redefine
       unless mobject.const_defined?(base_name)
         klass = setup_revisions_model(model, options)
         # Actually define the class in the module
         mobject.const_set base_name, klass
       end
 
+      # Configure associations / methods on models
       setup_model(model, options)
     end
 
