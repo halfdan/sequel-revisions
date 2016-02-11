@@ -38,6 +38,3 @@ DEPENDENCIES
   rspec (~> 3)
   sequel-revisions!
   sqlite3 (~> 1)
-
-BUNDLED WITH
-   1.11.2

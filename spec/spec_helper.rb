@@ -29,6 +29,23 @@ DB.create_table :post_revisions do
   index [:post_id]
 end
 
+DB.create_table :revisions do
+  primary_key :id, :integer, auto_increment: true
+  integer :trackable_id, null: false
+  string :trackable_type, null: false
+
+  integer :embedded_id, null: false
+  string :embedded_type, null: false
+
+  text :meta, default: "{}"
+  text :changes, default: "{}"
+
+  DateTime :created_at
+  DateTime :updated_at
+
+  index [:trackable_id, :trackable_type]
+end
+
 RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = :should }
 end

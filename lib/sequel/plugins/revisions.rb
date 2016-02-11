@@ -4,12 +4,11 @@ require 'json'
 module Sequel::Plugins
   module Revisions
     def self.apply(model, options = {})
-      options = {
-        model_name: "#{model.name}Revisions",
-        table_name: "#{model.table_name.to_s.singularize}_revisions",
-        exclude: [:created_at, :updated_at],
-        meta: nil
-      }.merge(options)
+
+    end
+
+    def self.configure(model, options = {})
+      options = set_options(model, options)
 
       base_name = options[:model_name]
 
@@ -21,49 +20,13 @@ module Sequel::Plugins
         mobject = Object
       end
 
-      # Dynamically create Model class
-      klass = Class.new(Sequel::Model(options[:table_name].to_sym))
-      klass.class_eval do
-        @@lmeta = options[:meta]
-        plugin :timestamps
-        plugin :serialization
-
-        serialize_attributes :json, :meta
-        serialize_attributes :json, :changes
-        many_to_one model.table_name.to_sym, class: model.name
-
-        def before_create
-          # ToDo: This should not call to_json. Maybe a bug?
-          self[:meta] = @@lmeta.call().to_json unless @@lmeta.nil?
-          super
-        end
+      unless mobject.const_defined?(base_name)
+        klass = setup_revisions_model(model, options)
+        # Actually define the class in the module
+        mobject.const_set base_name, klass
       end
 
-      # Actually define the class in the module
-      mobject.const_set base_name, klass
-
-      model.class_eval do
-        plugin :dirty
-        one_to_many :revisions, class: options[:model_name]
-
-        def revert
-          return if revisions.empty?
-
-          last = revisions.last
-          changes = last.changes
-          changes.keys.each do |key|
-            send("#{key}=", changes[key][0])
-          end
-        end
-
-        def revert!
-          revert
-          save
-        end
-      end
-    end
-
-    def self.configure(model, options = {})
+      setup_model(model, options)
     end
 
     module ClassMethods
@@ -88,6 +51,63 @@ module Sequel::Plugins
         end
 
         add_revision(changes: changes)
+      end
+    end
+
+  private
+
+    def self.set_options(model, options)
+      model_name = options[:polymorphic] ? "Revisions" : "#{model.name}Revisions"
+      table_name = options[:polymorphic] ? "revisions" : "#{model.table_name.to_s.singularize}_revisions"
+
+      options = {
+        model_name: model_name,
+        table_name: table_name,
+        exclude: [:created_at, :updated_at],
+        meta: nil
+      }.merge(options)
+    end
+
+    def self.setup_revisions_model(model, options)
+      # Dynamically create Model class
+      klass = Class.new(Sequel::Model(options[:table_name].to_sym))
+      klass.class_eval do
+        @@lmeta = options[:meta]
+        plugin :timestamps
+        plugin :serialization
+
+        serialize_attributes :json, :meta
+        serialize_attributes :json, :changes
+        many_to_one model.table_name.to_sym, class: model.name
+
+        def before_create
+          # ToDo: This should not call to_json. Maybe a bug?
+          self[:meta] = @@lmeta.call().to_json unless @@lmeta.nil?
+          super
+        end
+      end
+      klass
+    end
+
+    def self.setup_model(model, options)
+      model.class_eval do
+        plugin :dirty
+        one_to_many :revisions, class: options[:model_name]
+
+        def revert
+          return if revisions.empty?
+
+          last = revisions.last
+          changes = last.changes
+          changes.keys.each do |key|
+            send("#{key}=", changes[key][0])
+          end
+        end
+
+        def revert!
+          revert
+          save
+        end
       end
     end
   end
