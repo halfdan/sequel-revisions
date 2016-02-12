@@ -5,11 +5,13 @@ module Sequel
   module Plugins
     module Revisions
       def self.apply(model, options = {})
+        options = set_options(model, options)
         model.class_eval do
           @revisions_polymorphic = options[:polymorphic]
           @revisions_embedded_in = options[:embedded_in]
           @revisions_on          = options[:on]
           @revisions_meta        = options[:meta]
+          @revisions_exclude     = options[:exclude]
         end
       end
 
@@ -42,6 +44,7 @@ module Sequel
           :@revisions_polymorphic => :dup,
           :@revisions_embedded_in => :dup,
           :@revisions_on => :dup,
+          :@revisions_exclude => :dup,
           :@revisions_meta => nil)
 
         def revisions_polymorphic?
@@ -63,6 +66,10 @@ module Sequel
 
         def revisions_meta
           @revisions_meta
+        end
+
+        def revisions_exclude
+          @revisions_exclude
         end
       end
 
@@ -86,15 +93,27 @@ module Sequel
       private
 
         def track_changes(action)
-          return if changed_columns.empty?
-
-          # Map the changed fields into an object
-          changes = changed_columns.inject({}) do |obj, key|
-            obj[key] = column_change(key)
-            obj
+          case action
+          when :update
+            return if changed_columns.empty?
+            # Map the changed fields into an object
+            changes = changed_columns.inject({}) do |obj, key|
+              obj[key] = column_change(key)
+              obj
+            end
+          when :create
+            changes = (columns - model.revisions_exclude).inject({}) do |obj, key|
+              obj[key] = [nil, send(key)]
+              obj
+            end
+          when :destroy
+            changes = (columns - model.revisions_exclude).inject({}) do |obj, key|
+              obj[key] = [send(key), nil]
+              obj
+            end
           end
 
-          # ToDo: This should not call to_json. Maybe a bug?
+          #
           meta = model.revisions_meta.call() unless model.revisions_meta.nil?
 
           if model.revisions_embedded_in.nil?
@@ -115,7 +134,7 @@ module Sequel
         options = {
           model_name: model_name,
           table_name: table_name,
-          exclude: [:created_at, :updated_at],
+          exclude: [:id, :created_at, :updated_at],
           meta: nil
         }.merge(options)
       end

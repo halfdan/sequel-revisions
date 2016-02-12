@@ -145,7 +145,7 @@ describe Sequel::Plugins::Revisions do
         @comment.text = "Test 123"
         @comment.save
 
-        @comment.revisions.length.should eq(1)
+        @comment.revisions.length.should eq(2)
       end
     end
   end

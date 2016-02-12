@@ -11,7 +11,7 @@ describe Sequel::Plugins::Revisions do
           user_id: 12,
           user_name: "Marvin"
         }
-      }, on: [:update]
+      }
     end
 
     it "should be loaded using Model.plugin" do
@@ -24,8 +24,8 @@ describe Sequel::Plugins::Revisions do
 
     it "should track only updates for Posts" do
       Post.revisions_on?(:update).should be true
-      Post.revisions_on?(:create).should be false
-      Post.revisions_on?(:destroy).should be false
+      Post.revisions_on?(:create).should be true
+      Post.revisions_on?(:destroy).should be true
     end
 
     describe "Revision Tracking" do
@@ -37,14 +37,16 @@ describe Sequel::Plugins::Revisions do
         @post.revisions.should be_empty
       end
 
-      it "should track changes after update" do
+      it "should track changes after first save" do
         # First save
         @post.save
         # Changing post
         @post.title = "New Title"
         @post.save
 
-        @post.revisions.length.should eq(1)
+        @post.revisions.length.should eq(2)
+        @post.revisions.first.action.should eq('create')
+        @post.revisions.last.action.should eq('update')
       end
 
       it "should track the correct fields" do
@@ -66,11 +68,6 @@ describe Sequel::Plugins::Revisions do
         @post = Post.create(title: "Test Post", content: "Awesome Content")
       end
 
-      it "does nothing when there's are no revisions" do
-        @post.revert
-        @post.changed_columns.should be_empty
-      end
-
       it "reverts previous changes" do
         @post.title = "Changed Title"
         @post.content = "Changed Content"
@@ -87,10 +84,10 @@ describe Sequel::Plugins::Revisions do
         @post.content = "Changed Content"
         @post.save
 
-        @post.revisions.length.should eq(1)
+        @post.revisions.length.should eq(2)
 
         @post.revert!
-        @post.revisions.length.should eq(2)
+        @post.revisions.length.should eq(3)
       end
     end
 
