@@ -41,7 +41,7 @@ module Sequel
 
       module ClassMethods
         Plugins.inherited_instance_variables(self,
-          :@revisions_polymorphic => :dup,
+          :@revisions_polymorphic => nil,
           :@revisions_embedded_in => :dup,
           :@revisions_on => :dup,
           :@revisions_exclude => :dup,
