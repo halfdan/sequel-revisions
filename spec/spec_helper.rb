@@ -20,6 +20,7 @@ end
 DB.create_table :post_revisions do
   primary_key :id, :integer, auto_increment: true
   integer :post_id, null: false
+  string :action, null: false
   text :meta, default: "{}"
   text :changes, default: "{}"
 
@@ -38,13 +39,26 @@ DB.create_table :articles do
   DateTime :updated_at
 end
 
+DB.create_table :comments do
+  primary_key :id, :integer, auto_increment: true
+  integer :article_id, null: false
+
+  string :name
+  varchar :text
+
+  DateTime :created_at
+  DateTime :updated_at
+end
+
 DB.create_table :revisions do
   primary_key :id, :integer, auto_increment: true
+
+  string :action, null: false
   integer :trackable_id, null: false
   string :trackable_type, null: false
 
-  integer :embedded_id, null: true
-  string :embedded_type, null: true
+  integer :embeddable_id, null: true
+  string :embeddable_type, null: true
 
   text :meta, default: "{}"
   text :changes, default: "{}"
@@ -54,6 +68,8 @@ DB.create_table :revisions do
 
   index [:trackable_id, :trackable_type]
 end
+
+Sequel::Model.plugin(:polymorphic)
 
 RSpec.configure do |config|
   config.expect_with(:rspec) { |c| c.syntax = :should }
