@@ -52,8 +52,13 @@ module Sequel
           @revisions_embedded_in
         end
 
-        def revisions_on
-          @revisions_on
+        def revisions_on? action
+          # We track everything by default
+          unless @revisions_on
+            true
+          else
+            @revisions_on.include? action
+          end
         end
 
         def revisions_meta
@@ -65,7 +70,17 @@ module Sequel
 
         def before_update
           super
-          track_changes(:update)
+          track_changes(:update) if model.revisions_on? :update
+        end
+
+        def before_destroy
+          super
+          track_changes(:destroy) if model.revisions_on? :destroy
+        end
+
+        def after_create
+          super
+          track_changes(:create) if model.revisions_on? :create
         end
 
       private

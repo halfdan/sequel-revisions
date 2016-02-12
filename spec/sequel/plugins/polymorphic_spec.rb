@@ -36,6 +36,18 @@ describe Sequel::Plugins::Revisions do
       Object.const_get("Revision").should_not be_nil
     end
 
+    it "should track all actions for Comments" do
+      Comment.revisions_on?(:update).should be true
+      Comment.revisions_on?(:create).should be true
+      Comment.revisions_on?(:destroy).should be true
+    end
+
+    it "should only track updates for Articles" do
+      Article.revisions_on?(:update).should be true
+      Article.revisions_on?(:create).should be false
+      Article.revisions_on?(:destroy).should be false
+    end
+
     describe "Revision Tracking" do
       before(:each) do
         @article = Article.new(title: "Test Article", content: "Awesome Content")

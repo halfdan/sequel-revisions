@@ -11,7 +11,7 @@ describe Sequel::Plugins::Revisions do
           user_id: 12,
           user_name: "Marvin"
         }
-      }, on: [:updated]
+      }, on: [:update]
     end
 
     it "should be loaded using Model.plugin" do
@@ -20,6 +20,12 @@ describe Sequel::Plugins::Revisions do
 
     it "should define a PostRevisions model" do
       Object.const_get("PostRevision").should_not be_nil
+    end
+
+    it "should track only updates for Posts" do
+      Post.revisions_on?(:update).should be true
+      Post.revisions_on?(:create).should be false
+      Post.revisions_on?(:destroy).should be false
     end
 
     describe "Revision Tracking" do
