@@ -186,11 +186,11 @@ module Sequel
 
         if options[:polymorphic]
           model.class_eval do
-            one_to_many :revisions, as: :trackable
+            one_to_many :revisions, as: :trackable, class: options[:model_name]
           end
         elsif options[:embedded_in]
           model.class_eval do
-            one_to_many :revisions, as: :embeddable
+            one_to_many :revisions, as: :embeddable, class: options[:model_name]
           end
         else
           model.class_eval do
