@@ -61,6 +61,20 @@ describe Sequel::Plugins::Revisions do
         revision = @post.revisions.last
         revision.changes.size.should eq(2)
       end
+
+      it "should track the full lifecycle" do
+        # First save
+        @post.save
+
+        @post.revisions.last.action.should eq('create')
+
+        @post.title = "New Title"
+        @post.save
+        @post.revisions.last.action.should eq('update')
+
+        @post.destroy
+        @post.revisions.last.action.should eq('destroy')
+      end
     end
 
     describe "Reverting Changes" do
