@@ -152,6 +152,7 @@ module Sequel
 
         if options[:polymorphic]
           klass.class_eval do
+            plugin :polymorphic
             many_to_one :trackable, polymorphic: true
             many_to_one :embeddable, polymorphic: true
           end
