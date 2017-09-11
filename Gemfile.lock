@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    sequel-revisions (0.2.4)
+    sequel-revisions (0.2.5)
       sequel (~> 4)
       sequel-json (~> 0)
       sequel_polymorphic
