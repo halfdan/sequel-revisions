@@ -24,7 +24,7 @@ GEM
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.4.0)
     rspec-support (3.4.1)
-    sequel (4.31.0)
+    sequel (4.49.0)
     sequel-json (0.0.1)
       sequel
       yajl-ruby
@@ -41,3 +41,6 @@ DEPENDENCIES
   rspec (~> 3)
   sequel-revisions!
   sqlite3 (~> 1)
+
+BUNDLED WITH
+   1.15.3

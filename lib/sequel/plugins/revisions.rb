@@ -28,8 +28,8 @@ module Sequel
           mobject = Object
         end
 
-        # Don't redefine
-        unless mobject.const_defined?(base_name)
+        # Don't redefine and don't define for embedded revisions
+        if !mobject.const_defined?(base_name) && options[:embedded_in].nil?
           klass = setup_revisions_model(model, options)
           # Actually define the class in the module
           mobject.const_set base_name, klass
